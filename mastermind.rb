@@ -1,11 +1,18 @@
 class Game
   #intialize main variables
-  @@code = Array.new(4)
-  @@guess_attempted = 0
-  @@new_guess = nil
+
+  def start_game
+    @@code = Array.new(4)
+    @@guess_attempted = 0
+    @@new_guess = nil
+    game = Game.new
+    game.choose_role
+  end
   
   private
   def check_guess
+    p @@code
+    p @@new_guess
     #if code matches guess inform user
     if @@new_guess == @@code
       puts "Codebreaker Wins!"
@@ -30,8 +37,7 @@ class Game
     puts "would you like to play again (y/n)?"
     answer = gets.chomp.downcase
     if answer == "yes" || answer == "y"
-      game = Game.new
-      game.choose_role
+      start_game
     else
       puts "Thank you for playing!"
     end
@@ -42,21 +48,25 @@ class Game
   def feedback(code, guess)
     @@position_value_right = 0
     @@value_right = 0
+    right_position = {0 => false, 1 => false, 2 => false, 3 => false}
     #record if there is a guessed number that matches a number in the code
-    @@correct = {1 => false, 2 => false, 3 => false, 4 => false, 5 => false, 6 => false}
+    @@correct = {1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0}
     #record if ther is a guessed number that matches number and position
     code.each_with_index do |slot, index|
       if guess[index] == slot
-        @@correct[slot] = true
+        @@correct[slot] += 1
         @@position_value_right += 1
+        right_position[index] = true
       end
     end
     # increment a match for one number (in any position) in the code if the number WAS NOT already a perfect match for position
     # or number was already incremented for this method
-    code.each_with_index do |slot, index|
-      if guess.any?{|guess_digit| guess_digit == slot && @@correct[slot] == false}
-        @@value_right += 1
-        @@correct[slot] = true
+    guess.each_with_index do |guess_digit, index|
+      if right_position[index] == false && @@correct[guess_digit] < code.count(guess_digit)
+        if code.include?(guess_digit)
+          @@value_right += 1
+          @@correct[guess_digit] += 1
+        end
       end
     end
   end
@@ -103,6 +113,7 @@ class Computer < Game
 
   def generate_code
     @@code = @@code.map{|slot| slot = rand(6) + 1}
+    @@code = [1,1,2,2]
   end
   
   def guess
@@ -144,9 +155,13 @@ class Computer < Game
       @@possible_code.delete_if do |set|
         feedback(@@new_guess, set.digits.reverse)
         if old_position_value_right != @@position_value_right || old_value_right != @@value_right
+          if set == 5633
+            p "#{old_position_value_right} vs new: #{@@position_value_right} and value #{old_value_right} vs #{@@value_right}"
+          end
           true
         end
       end
+      p @@possible_code
       calculate_next_guess()
       check_guess()
     end    
@@ -224,5 +239,6 @@ puts "You will choose to be the codemaker or codebreaker, the computer will take
 The codebreak will get feedback after each guess. The code is a 4 digit code with each digit ranging from 1-6. \n
 The feedback will give you how many are completely right and how many digit the value is only right. \n
 Each digit can only give one type of feedback unless both position and value is right, eg"
+
 game = Game.new
-game.choose_role
+game.start_game
