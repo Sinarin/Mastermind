@@ -11,8 +11,6 @@ class Game
   
   private
   def check_guess
-    p @@code
-    p @@new_guess
     #if code matches guess inform user
     if @@new_guess == @@code
       puts "Codebreaker Wins!"
@@ -22,9 +20,10 @@ class Game
     #if the code does not match give feedback about the guess
     feedback(@@code, @@new_guess)
     @@guess_attempted += 1
+    puts "Codebreak's Guess: #{@@new_guess}"
     puts "Guess:#{@@position_value_right} Right and #{@@value_right} only guessed values included in code"
     if @@guess_attempted < 12
-      puts "Guess ##{@@guess_attempted}, #{12-@@guess_attempted} remaining"
+      puts "Guess attempted ##{@@guess_attempted}, #{12-@@guess_attempted} remaining \n\n"
       guess()
     else
       puts "Codebreaker Loses"
@@ -59,8 +58,7 @@ class Game
         right_position[index] = true
       end
     end
-    # increment a match for one number (in any position) in the code if the number WAS NOT already a perfect match for position
-    # or number was already incremented for this method
+    #check if a digit in guess (that hasn't found a pefect match) corresponds to any number in the answer
     guess.each_with_index do |guess_digit, index|
       if right_position[index] == false && @@correct[guess_digit] < code.count(guess_digit)
         if code.include?(guess_digit)
@@ -113,7 +111,6 @@ class Computer < Game
 
   def generate_code
     @@code = @@code.map{|slot| slot = rand(6) + 1}
-    @@code = [1,1,2,2]
   end
   
   def guess
@@ -155,13 +152,9 @@ class Computer < Game
       @@possible_code.delete_if do |set|
         feedback(@@new_guess, set.digits.reverse)
         if old_position_value_right != @@position_value_right || old_value_right != @@value_right
-          if set == 5633
-            p "#{old_position_value_right} vs new: #{@@position_value_right} and value #{old_value_right} vs #{@@value_right}"
-          end
           true
         end
       end
-      p @@possible_code
       calculate_next_guess()
       check_guess()
     end    
@@ -237,8 +230,12 @@ end
 
 puts "You will choose to be the codemaker or codebreaker, the computer will take the other role. \n
 The codebreak will get feedback after each guess. The code is a 4 digit code with each digit ranging from 1-6. \n
-The feedback will give you how many are completely right and how many digit the value is only right. \n
-Each digit can only give one type of feedback unless both position and value is right, eg"
+The feedback will give you how many are completely right and how many values are right but in the wrong place. \n\n"
+print "If there are duplicate colors in the guess, they cannot all be awarded a key peg unless they correspond 
+to the same number of duplicate colors in the hidden code. For example, if the hidden code is red-red-blue-blue
+and the player guesses red-red-red-blue, the codemaker will award two colored key pegs for the two correct reds, 
+nothing for the third red as there is not a third red in the code, and a colored key peg for the blue. 
+No indication is given of the fact that the code also includes a second blue \n\n"
 
 game = Game.new
 game.start_game
